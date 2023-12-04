@@ -36,7 +36,6 @@ const main = (input: string) => {
     const multipler = {};
 
     const counted = lines.map((line, lineIndex) => {
-      let matchValue = 0;
       let matches = 0;
 
       const matchSet = new Set(line.winning);
@@ -44,11 +43,6 @@ const main = (input: string) => {
       for (const n of line.have) {
         if (matchSet.has(n)) {
           matches++;
-          if (!matchValue) {
-            matchValue = 1;
-          } else {
-            matchValue = matchValue * 2;
-          }
         }
       }
 
