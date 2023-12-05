@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const w = process.argv[2];
 
-const isMini = process.argv.includes('mini');
+const isCustomFile = process.argv[3];
 
 if (!w) {
   console.log('\n\n');
@@ -12,7 +12,9 @@ if (!w) {
 
 async function main() {
   try {
-    const file = fs.readFileSync(`./${w}/${isMini ? 'mini' : 'input'}.txt`);
+    const file = fs.readFileSync(
+      `./${w}/${isCustomFile ? isCustomFile : 'input'}.txt`
+    );
     const text = file.toString();
 
     const runner = await import(`./${w}/index.ts`);
