@@ -57,9 +57,11 @@ const findStart = (map: string[][]) => {
     { x: sX + 1, y: sY },
     { x: sX - 1, y: sY },
   ].filter((v) => {
+    //@ts-ignore
     const aaj = getAdjacent(getValueByCoords(map, v), v);
     if (!aaj) return false;
 
+    //@ts-ignore
     return aaj.some(({ x, y }) => x === sX && y === sY);
   });
 
@@ -69,6 +71,7 @@ const findStart = (map: string[][]) => {
 
   const adjSimple = adjacent.map((v) => `${v.x}-${v.y}`);
   const letter = possible.find((v) => {
+    //@ts-ignore
     const shouldBe = getAdjacent(v, start).map((v) => `${v.x}-${v.y}`);
 
     return shouldBe.every((v) => adjSimple.includes(v));
@@ -114,16 +117,22 @@ const main = (input: string) => {
 
     while (toCheck.length) {
       const current = toCheck.shift();
+      //@ts-ignore
       const currentVal = getValueByCoords(map, current);
+      //@ts-ignore
       const currentVisited = Number(getValueByCoords(visited, current));
 
+      //@ts-ignore
       const adj = getAdjacent(currentVal, current).filter((v) => {
+        //@ts-ignore
         const isVisited = getValueByCoords(visited, v);
         return typeof isVisited === 'string' ? false : true;
       });
 
       adj.forEach((v) => {
+        //@ts-ignore
         setMap(visited, v, String(currentVisited + 1));
+        //@ts-ignore
         toCheck.push(v);
       });
     }
@@ -148,6 +157,7 @@ const main = (input: string) => {
   };
   const second: IF = ({ map }) => {
     const start = findStart(map);
+    //@ts-ignore
     setMap(map, start.start, start.letter);
 
     let inside = 0;
@@ -160,6 +170,7 @@ const main = (input: string) => {
         const vasVisited = getValueByCoords(commonVisited, { x, y });
 
         if (vasVisited) {
+          //@ts-ignore
           if (['|', 'L', 'J'].includes(base)) {
             intersectCount++;
           }
