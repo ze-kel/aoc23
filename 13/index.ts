@@ -1,8 +1,12 @@
+import { add } from 'lodash-es';
+
 const isMirror = (
   map: string[],
   indexOfFirstReflected: number,
   type: 'vert' | 'hor'
 ) => {
+  let errorCounter = 0;
+
   if (type === 'hor') {
     for (
       let x1 = indexOfFirstReflected, x2 = indexOfFirstReflected - 1;
@@ -10,7 +14,9 @@ const isMirror = (
       x1++, x2--
     ) {
       for (let y = 0; y < map.length; y++) {
-        if (map[y][x1] !== map[y][x2]) return false;
+        if (map[y][x1] !== map[y][x2]) {
+          errorCounter++;
+        }
       }
     }
   } else {
@@ -19,11 +25,43 @@ const isMirror = (
       y1 < map.length && y2 >= 0;
       y1++, y2--
     ) {
-      if (map[y1] !== map[y2]) return false;
+      for (let x = 0; x < map[0].length; x++) {
+        if (map[y1][x] !== map[y2][x]) {
+          errorCounter++;
+        }
+      }
     }
   }
 
-  return true;
+  return errorCounter;
+};
+
+const findReflectionValue = (map: string[], targetErrors = 0) => {
+  let result;
+
+  // horizontal match, vertical line
+  for (let i = 1; i < map[0].length; i++) {
+    const res = isMirror(map, i, 'hor');
+    if (res === targetErrors) {
+      if (result) {
+        console.log('double found');
+      }
+      result = i;
+    }
+  }
+
+  // vertical match, horizontal line
+  for (let i = 1; i < map.length; i++) {
+    const res = isMirror(map, i, 'vert');
+    if (res === targetErrors) {
+      if (result) {
+        console.log('double found');
+      }
+      result = i * 100;
+    }
+  }
+  return result;
+  throw new Error('not found');
 };
 
 const main = (input: string) => {
@@ -38,44 +76,14 @@ const main = (input: string) => {
   type IF = (v: typeof inputParsed) => any;
 
   const first: IF = ({ maps }) => {
-    let counter = 0;
-    for (const map of maps) {
-      let isFound = false;
-
-      // horizontal match, vertical line
-      for (let i = 1; i < map[0].length; i++) {
-        const res = isMirror(map, i, 'hor');
-        if (res) {
-          counter += i;
-
-          if (isFound === true) {
-            console.log('double match');
-          }
-
-          isFound = true;
-        }
-      }
-
-      // vertical match, horizontal line
-      for (let i = 1; i < map.length; i++) {
-        const res = isMirror(map, i, 'vert');
-        if (res) {
-          counter += i * 100;
-
-          if (isFound === true) {
-            console.log('double match');
-          }
-          isFound = true;
-        }
-      }
-
-      if (!isFound) {
-        console.log('not found', map);
-      }
-    }
-    return counter;
+    const values = maps.map((v) => findReflectionValue(v, 0));
+    return values.reduce(add);
   };
-  const second: IF = ({ maps }) => {};
+
+  const second: IF = ({ maps }) => {
+    const values = maps.map((v) => findReflectionValue(v, 1));
+    return values.reduce(add);
+  };
 
   const f = first(inputParsed);
   console.log(f);
@@ -85,6 +93,3 @@ const main = (input: string) => {
 };
 
 export default main;
-
-// 19865 too low
-// 236581 too hight
