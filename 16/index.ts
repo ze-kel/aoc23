@@ -154,13 +154,7 @@ const main = (input: string) => {
   const first: IF = ({ map }) => {
     const m = simulateLight(map, { x: 0, y: 0, direction: 1, axis: 'x' });
 
-    map.forEach((line, y) => {
-      let l = '';
-      for (let i = 0; i < line.length; i++) {
-        const t = m[y]?.[i];
-        l += t ? 'L' : '.';
-      }
-    });
+    //const m = simulateLight(map, { x: 0, y: 0, direction: 1, axis: 'x' });
 
     return countMarked(m);
   };
@@ -217,6 +211,3 @@ const main = (input: string) => {
 };
 
 export default main;
-
-// 904 too low
-//8349 too low
