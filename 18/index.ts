@@ -2,75 +2,39 @@ type DIR = 'L' | 'R' | 'U' | 'D';
 
 class CustomMap {
   storage: Record<number, Record<number, string>>;
-  edges: number[];
+  edges: [number, number][];
 
   constructor() {
     this.storage = {};
     this.edges = [];
   }
 
-  set(x: number, y: number, val: string, edge?: boolean) {
-    if (!(x in this.storage)) {
-      this.storage[x] = {};
-    }
-
-    this.storage[x][y] = val;
-
-    if (edge) {
-      this.edges.push(x, y);
-    }
-  }
-
-  getRanges() {
-    const xK = Object.keys(this.storage).map((v) => Number(v));
-
-    const yK: number[] = [];
-
-    xK.forEach((k) => {
-      yK.push(...Object.keys(this.storage[k]).map((v) => Number(v)));
-    });
-
-    const minX = Math.min(...xK);
-    const maxX = Math.max(...xK);
-    const minY = Math.min(...yK);
-    const maxY = Math.max(...yK);
-    return { minX, minY, maxX, maxY };
-  }
-
-  draw() {
-    const r = this.getRanges();
-    for (let y = r.minY; y <= r.maxY; y++) {
-      const l: string[] = [];
-      for (let x = r.minX; x <= r.maxX; x++) {
-        const d = this.storage[x]?.[y];
-        l.push(d ? d : '.');
-      }
-      console.log(l.join(''));
-    }
+  set(x: number, y: number) {
+    this.edges.push([x, y]);
   }
 
   countPerimeter() {
     let c = 0;
 
-    const r = this.getRanges();
-    for (let y = r.minY; y <= r.maxY; y++) {
-      for (let x = r.minX; x <= r.maxX; x++) {
-        const d = this.storage[x]?.[y];
-        if (d === '#') {
-          c++;
-        }
-      }
+    for (let i = 1; i < this.edges.length; i++) {
+      const o = this.edges[i - 1];
+      const b = this.edges[i];
+
+      c += Math.abs(o[0] - b[0]) + Math.abs(o[1] - b[1]);
     }
+
+    const f = this.edges[0];
+    const l = this.edges[this.edges.length - 1];
+
+    c += Math.abs(f[0] - l[0]) + Math.abs(f[1] - l[1]);
 
     return c;
   }
 
   countSpace() {
-    const polygon = this.edges;
+    const polygon = this.edges.reduce((a, b) => [...a, ...b], [] as number[]);
 
     const length = polygon.length;
-
-    console.log('aaa', this.edges);
 
     let sum = 0;
 
@@ -88,6 +52,8 @@ type DD = {
   dir: DIR;
   n: number;
   hex: string;
+  n2: number;
+  dir2: DIR;
 };
 
 const dirs: Record<DIR, [number, number]> = {
@@ -97,23 +63,18 @@ const dirs: Record<DIR, [number, number]> = {
   R: [1, 0],
 };
 
+const dirs2: Array<DIR> = ['R', 'D', 'L', 'U'];
+
 const procesStep = (
   map: CustomMap,
   pointer: { x: number; y: number },
-  step: DD
+  dir: DIR,
+  n: number
 ) => {
-  const adds = dirs[step.dir];
-
-  for (let i = 1; i <= step.n; i++) {
-    const nX = pointer.x + i * adds[0];
-    const nY = pointer.y + i * adds[1];
-    map.set(nX, nY, '#', i === step.n);
-
-    if (i === step.n) {
-      pointer.x = nX;
-      pointer.y = nY;
-    }
-  }
+  const adds = dirs[dir];
+  pointer.x = pointer.x + n * adds[0];
+  pointer.y = pointer.y + n * adds[1];
+  map.set(pointer.x, pointer.y);
 };
 
 const main = (input: string) => {
@@ -123,10 +84,17 @@ const main = (input: string) => {
     .map((v) => {
       const s = v.split(' ');
 
+      const hex = s[2].replace('(', '').replace(')', '');
+
+      const n2 = parseInt(hex.slice(0, -1).replace('#', ''), 16);
+      const dir2 = dirs2[hex[hex.length - 1]];
+
       return {
         dir: s[0] as DIR,
         n: Number(s[1]),
-        hex: s[2].replace('(', '').replace(')', ''),
+        hex: hex,
+        n2,
+        dir2: dir2 as DIR,
       };
     });
 
@@ -139,13 +107,18 @@ const main = (input: string) => {
   const first: IF = ({ steps }) => {
     const mmm = new CustomMap();
     const pointer = { x: 0, y: 0 };
-    steps.forEach((s) => procesStep(mmm, pointer, s));
+    steps.forEach((s) => procesStep(mmm, pointer, s.dir, s.n));
     console.log('p', mmm.countPerimeter());
 
     return mmm.countSpace();
   };
 
-  const second: IF = ({ steps }) => {};
+  const second: IF = ({ steps }) => {
+    const mmm = new CustomMap();
+    const pointer = { x: 0, y: 0 };
+    steps.forEach((s) => procesStep(mmm, pointer, s.dir2, s.n2));
+    return mmm.countSpace();
+  };
 
   console.time('first');
   const f = first(inputParsed);
