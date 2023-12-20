@@ -3,3 +3,7 @@ export const getNumbersFromString = (i: string): number[] => {
   if (!arr) return [];
   return arr;
 };
+
+const gcd = (a, b) => (a ? gcd(b % a, a) : b);
+
+export const lcm = (a, b) => (a * b) / gcd(a, b);
