@@ -101,24 +101,39 @@ const main = (input: string) => {
   };
 
   const second: IF = ({ map }) => {
-    const keyPlaces: Record<string, Set<string>> = {};
+    const keyPlaces: Record<string, Record<string, number>> = {};
 
-    // find places where we can choose direction
     for (let y = 0; y < map.length; y++) {
       for (let x = 0; x < map[0].length; x++) {
-        const possible = getNear(y, x).filter(
-          ([y, x]) => map[y]?.[x] && map[y]?.[x] !== '#'
-        );
+        if (!['.', '>', '<', '^', 'v'].includes(map[y]?.[x])) {
+          continue;
+        }
+        const near = getNear(y, x);
+        const possible = near.filter(([y, x]) => {
+          return ['.', '>', '<', '^', 'v'].includes(map[y]?.[x]);
+        });
 
         if (possible.length > 2) {
-          keyPlaces[`${y}-${x}`] = new Set();
+          possible.forEach(([y, x]) => {
+            console.log(y, x, map[y][x]);
+          });
+
+          keyPlaces[`${y}-${x}`] = {};
         }
       }
     }
 
     const endString = `${map.length - 1}-${map[0].length - 2}`;
-    keyPlaces['0-1'] = new Set();
-    keyPlaces[endString] = new Set();
+    keyPlaces['0-1'] = {};
+    keyPlaces[endString] = {};
+
+    for (let y = 0; y < map.length; y++) {
+      let line: string[] = [];
+      for (let x = 0; x < map[0].length; x++) {
+        line.push(`${y}-${x}` in keyPlaces ? 'O' : map[y][x]);
+      }
+      console.log(line.join(''));
+    }
 
     Object.keys(keyPlaces).forEach((place) => {
       const [y, x] = place.split('-').map(Number);
@@ -130,7 +145,15 @@ const main = (input: string) => {
 
         history.add(`${y}-${x}`);
         if (`${y}-${x}` in keyPlaces && `${y}-${x}` !== place) {
-          keyPlaces[place].add(`${y}-${x}-${history.size}`);
+          const t = `${y}-${x}`;
+
+          if (!keyPlaces[place][t]) {
+            keyPlaces[place][t] = -1;
+          }
+
+          if (keyPlaces[place][t] < history.size) {
+            keyPlaces[place][t] = history.size;
+          }
           continue;
         }
 
@@ -156,10 +179,11 @@ const main = (input: string) => {
 
     // y x steps id
     const queue = [[0, 1, 0, new Set<string>(['0-1'])]];
-    const finished: number[] = [];
+
+    let max = 0;
 
     while (queue.length) {
-      const [y, x, steps, history] = queue.shift() as [
+      const [y, x, steps, history] = queue.pop() as [
         number,
         number,
         number,
@@ -168,30 +192,38 @@ const main = (input: string) => {
 
       history.add(`${y}-${x}`);
       if (y === map.length - 1 && x === map[0].length - 2) {
-        finished.push(steps);
-        console.log('f', queue.length);
+        if (steps > max) {
+          max = steps;
+          console.log('new max', max);
+        }
         continue;
       }
 
-      const [first, ...rest] = [...keyPlaces[`${y}-${x}`]]
-        .map((v) => v.split('-').map(Number))
-        .filter(([y, x]) => !history.has(`${y}-${x}`));
+      const [first, ...rest] = [...Object.entries(keyPlaces[`${y}-${x}`])]
+        .map(([coords, steps]) => [coords.split('-').map(Number), steps])
+        .filter(
+          ([coords, steps]) => !history.has(`${coords[0]}-${coords[1]}`)
+        ) as [number[], number][];
 
       if (!first) {
         continue;
       }
 
-      const [nY, nX, nS] = first;
-      queue.push([nY, nX, steps + nS - 1, history]);
+      const [coords, nS] = first;
+      queue.push([coords[0], coords[1], steps + nS - 1, history]);
 
       rest.forEach((v) => {
-        const [nY, nX, nS] = v;
-        queue.push([nY, nX, steps + nS - 1, structuredClone(history)]);
+        const [coords, nS] = v;
+        queue.push([
+          coords[0],
+          coords[1],
+          steps + nS - 1,
+          structuredClone(history),
+        ]);
       });
     }
 
-    // because we have initial position in set too
-    return Math.max(...finished);
+    return max;
   };
 
   console.timeEnd('preprocess');
@@ -202,14 +234,16 @@ const main = (input: string) => {
   console.log(f);
 
   console.time('second');
+
+  console.log(
+    'checking all cases takes a lot(52s on m2 u), but in my case it finds the right answers really fast'
+  );
   const s = second(inputParsed);
   console.timeEnd('second');
   console.log(s);
 };
 
 export default main;
-
-// 2314 too high
 
 /*
 
