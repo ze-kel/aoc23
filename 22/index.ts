@@ -139,14 +139,14 @@ const main = (input: string) => {
   const second: IF = ({ blocks }) => {
     let counter = 0;
 
-    console.log('haha On^2 loop goes brrr')
+    console.log('haha On^2 loop goes brrr');
     for (let i = 0; i < blocks.length; i++) {
       const copy = cloneDeep(blocks);
       copy.splice(i, 1);
 
       const fallen = fallDown(copy);
 
-      console.log('WORKING ON P2:' i, '/', blocks.length);
+      console.log('WORKING ON P2:', i, '/', blocks.length);
 
       counter += fallen;
     }
