@@ -9,6 +9,7 @@
   "dependencies": {
     "@types/lodash-es": "^4.17.12",
     "heap-js": "^2.3.0",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "z3-solver": "^4.12.4"
   }
 }

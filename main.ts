@@ -18,7 +18,7 @@ async function main() {
     const text = file.toString();
 
     const runner = await import(`./${w}/index.ts`);
-    runner.default(text);
+    await runner.default(text);
   } catch (err) {
     console.log(err);
   }
